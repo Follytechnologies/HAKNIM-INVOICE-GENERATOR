@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Hak-Nim — Invoice Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Outfit:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-name">Hak-Nim</div>
+      <div class="brand-sub">Professional Invoice Generator</div>
+    </div>
+    <div class="header-actions">
+      <button class="hdr-btn" id="newInvoiceBtn">+ New Invoice</button>
+      <button class="hdr-btn primary" id="printBtn">⬇ Download PDF</button>
+    </div>
+  </header>
+
+  <div class="app-layout">
+
+    <!-- ── LEFT: Editor Panel ── -->
+    <aside class="editor-panel" id="editorPanel">
+
+      <div class="editor-section">
+        <div class="section-label">Branding</div>
+        <div class="brand-row">
+          <div class="logo-upload-area" id="logoArea">
+            <input type="file" id="logoInput" accept="image/*" style="display:none"/>
+            <div class="logo-placeholder" id="logoPlaceholder">
+              <span>📷</span>
+              <span>Upload Logo</span>
+            </div>
+            <img id="logoPreview" style="display:none"/>
+          </div>
+          <div class="color-pickers">
+            <label class="color-row">
+              <span>Accent</span>
+              <input type="color" id="accentColor" value="#1a3a5c" class="color-input"/>
+            </label>
+            <label class="color-row">
+              <span>Text</span>
+              <input type="color" id="textColor" value="#1a1a1a" class="color-input"/>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="editor-section">
+        <div class="section-label">Your Business</div>
+        <input class="editor-input" id="bizName" placeholder="Business Name" value="Folly Technologies"/>
+        <input class="editor-input" id="bizEmail" placeholder="Email" value="info@folly.com"/>
+        <input class="editor-input" id="bizPhone" placeholder="Phone" value="+234 916 849 7802"/>
+        <textarea class="editor-input editor-textarea" id="bizAddress" placeholder="Address" rows="2">Lagos, Nigeria</textarea>
+      </div>
+
+      <div class="editor-section">
+        <div class="section-label">Client Details</div>
+        <input class="editor-input" id="clientName" placeholder="Client Name" value="Hak-Nim Furnitures"/>
+        <input class="editor-input" id="clientEmail" placeholder="Client Email" value="client@haknim.com"/>
+        <textarea class="editor-input editor-textarea" id="clientAddress" placeholder="Client Address" rows="2">Surulere, Lagos</textarea>
+      </div>
+
+      <div class="editor-section">
+        <div class="section-label">Invoice Info</div>
+        <div class="two-col">
+          <div>
+            <div class="field-label">Invoice #</div>
+            <input class="editor-input" id="invoiceNum" value="INV-001"/>
+          </div>
+          <div>
+            <div class="field-label">Currency</div>
+            <select class="editor-input editor-select" id="currency">
+              <option value="₦">NGN ₦</option>
+              <option value="$">USD $</option>
+              <option value="€">EUR €</option>
+              <option value="£">GBP £</option>
+              <option value="GH₵">GHS GH₵</option>
+              <option value="KSh">KES KSh</option>
+            </select>
+          </div>
+        </div>
+        <div class="two-col">
+          <div>
+            <div class="field-label">Issue Date</div>
+            <input class="editor-input" type="date" id="issueDate"/>
+          </div>
+          <div>
+            <div class="field-label">Due Date</div>
+            <input class="editor-input" type="date" id="dueDate"/>
+          </div>
+        </div>
+      </div>
+
+      <div class="editor-section">
+        <div class="section-label">Line Items</div>
+        <div id="lineItems"></div>
+        <button class="add-item-btn" id="addItemBtn">+ Add Item</button>
+      </div>
+
+      <div class="editor-section">
+        <div class="section-label">Totals</div>
+        <div class="two-col">
+          <div>
+            <div class="field-label">Tax (%)</div>
+            <input class="editor-input" type="number" id="taxRate" value="0" min="0" max="100"/>
+          </div>
+          <div>
+            <div class="field-label">Discount (%)</div>
+            <input class="editor-input" type="number" id="discountRate" value="0" min="0" max="100"/>
+          </div>
+        </div>
+      </div>
+
+      <div class="editor-section">
+        <div class="section-label">Notes & Terms</div>
+        <textarea class="editor-input editor-textarea" id="notes" placeholder="Payment notes, bank details…" rows="3">Thank you for your business! Payment is due within the specified period.</textarea>
+        <textarea class="editor-input editor-textarea" id="terms" placeholder="Terms & conditions…" rows="2">All prices are in the stated currency. Late payments may incur additional charges.</textarea>
+      </div>
+
+    </aside>
+
+    <!-- ── RIGHT: Invoice Preview ── -->
+    <div class="preview-panel">
+      <div class="preview-toolbar">
+        <span class="preview-label">Live Preview</span>
+        <div class="zoom-controls">
+          <button class="zoom-btn" id="zoomOut">−</button>
+          <span class="zoom-val" id="zoomVal">100%</span>
+          <button class="zoom-btn" id="zoomIn">+</button>
+        </div>
+      </div>
+
+      <div class="preview-scroller" id="previewScroller">
+        <div class="invoice-wrap" id="invoiceWrap">
+
+          <!-- This is the actual printable invoice -->
+          <div class="invoice" id="invoiceDocument">
+
+            <div class="inv-header">
+              <div class="inv-brand">
+                <img id="invLogo" style="display:none" alt="Logo"/>
+                <div id="invBizBlock">
+                  <div class="inv-biz-name" id="invBizName">Folly &amp; Technologies</div>
+                  <div class="inv-biz-details" id="invBizDetails"></div>
+                </div>
+              </div>
+              <div class="inv-title-block">
+                <div class="inv-title">INVOICE</div>
+                <div class="inv-num" id="invNum">INV-001</div>
+              </div>
+            </div>
+
+            <div class="inv-meta-row">
+              <div class="inv-client-block">
+                <div class="inv-meta-label">BILL TO</div>
+                <div class="inv-client-name" id="invClientName">Hak-Nim Furnitures</div>
+                <div class="inv-client-details" id="invClientDetails"></div>
+              </div>
+              <div class="inv-dates-block">
+                <div class="inv-date-row">
+                  <span class="inv-meta-label">ISSUE DATE</span>
+                  <span class="inv-date-val" id="invIssueDate">—</span>
+                </div>
+                <div class="inv-date-row">
+                  <span class="inv-meta-label">DUE DATE</span>
+                  <span class="inv-date-val" id="invDueDate">—</span>
+                </div>
+                <div class="inv-status">PAID</div>
+              </div>
+            </div>
+
+            <div class="inv-divider"></div>
+
+            <table class="inv-table" id="invTable">
+              <thead>
+                <tr>
+                  <th class="col-desc">Description</th>
+                  <th class="col-qty">Qty</th>
+                  <th class="col-rate">Rate</th>
+                  <th class="col-amount">Amount</th>
+                </tr>
+              </thead>
+              <tbody id="invTableBody"></tbody>
+            </table>
+
+            <div class="inv-totals-row">
+              <div class="inv-notes-col">
+                <div class="inv-notes-label">Notes</div>
+                <div class="inv-notes-text" id="invNotes"></div>
+                <div class="inv-terms-label">Terms</div>
+                <div class="inv-terms-text" id="invTerms"></div>
+              </div>
+              <div class="inv-totals-col" id="invTotals"></div>
+            </div>
+
+            <div class="inv-footer">
+              <div class="inv-footer-line" id="invFooterLine"></div>
+              <div class="inv-footer-tagline">Generated with Hak-Nim · Ahmad Portfolio Project</div>
+            </div>
+
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
